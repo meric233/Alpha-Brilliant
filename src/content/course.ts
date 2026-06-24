@@ -665,7 +665,3 @@ export const course: Course = {
 export function getLessonById(lessonId: string) {
   return course.lessons.find((l) => l.id === lessonId)
 }
-
-export function getLessonByOrder(order: number) {
-  return course.lessons.find((l) => l.order === order)
-}

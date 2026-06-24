@@ -52,12 +52,9 @@ export function RangeFormulaPanel({
         </div>
         <SinGraph
           angle={angle}
-          onAngleChange={onAngleChange}
           angleRange={angleRange}
           velocity={velocity}
           gravity={g}
-          showSlider={false}
-          showRangeLink
         />
       </div>
       <label className="sim-slider range-formula-slider">

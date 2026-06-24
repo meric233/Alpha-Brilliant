@@ -460,55 +460,6 @@ a {
   width: 100%;
 }
 
-.sim-aside-hint {
-  font-size: 0.9rem;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-}
-
-.formula-box,
-.formula-display {
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-h);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border, rgba(108, 63, 197, 0.3));
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-  text-align: center;
-  margin: 1rem 0;
-}
-
-.formula-note,
-.formula-highlight {
-  font-size: 0.95rem;
-  color: var(--text);
-}
-
-.formula-highlight {
-  color: var(--success);
-  font-weight: 500;
-}
-
-.sin-graph {
-  margin: 1rem 0;
-}
-
-.sin-graph-label {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.sin-graph-canvas {
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  display: block;
-  margin-bottom: 0.75rem;
-}
-
 @media (min-width: 640px) {
   .app-shell {
     max-width: 920px;
@@ -606,6 +557,12 @@ a {
 .formula-note {
   font-size: 0.9rem;
   margin-bottom: 1rem;
+}
+
+.formula-highlight {
+  font-size: 0.95rem;
+  color: var(--success);
+  font-weight: 500;
 }
 
 .sin-graph {
@@ -771,17 +728,6 @@ a {
   cursor: default;
 }
 
-/* Answer actions */
-.answer-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.answer-actions .btn {
-  width: 100%;
-}
-
 /* Numeric */
 .numeric-input-row {
   display: flex;
@@ -889,10 +835,6 @@ a {
 @keyframes burst-fly {
   0% { opacity: 1; transform: rotate(var(--rot)) translateY(0) scale(1); }
   100% { opacity: 0; transform: rotate(var(--rot)) translateY(min(-45vmin, -220px)) scale(0.2); }
-}
-
-.correct-burst {
-  display: none;
 }
 
 .streak-fire-overlay {
@@ -1142,7 +1084,6 @@ a {
   .lesson .step-intro,
   .lesson .step-explore,
   .lesson .step-mc:not(.step-with-sim),
-  .lesson .step-numeric:not(.step-with-sim),
   .lesson .step-capstone:not(.step-with-sim) {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1168,7 +1109,6 @@ a {
   .lesson .options,
   .lesson .numeric-input-row,
   .lesson .feedback,
-  .lesson .answer-actions,
   .lesson .btn-primary {
     grid-column: 1;
   }
@@ -1186,13 +1126,11 @@ a {
   }
 
   .lesson .step-mc .step-prompt,
-  .lesson .step-numeric .step-prompt,
   .lesson .step-capstone .step-prompt {
     grid-column: 1;
   }
 
   .lesson .step-mc:not(.step-with-sim),
-  .lesson .step-numeric:not(.step-with-sim):not(:has(.sim)),
   .lesson .step-capstone:not(.step-with-sim) {
     display: block;
   }

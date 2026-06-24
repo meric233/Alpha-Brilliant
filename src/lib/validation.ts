@@ -1,4 +1,4 @@
-import type { CapstoneStep, MultipleChoiceStep, NumericInputStep } from '../content/types'
+import type { CapstoneStep, MultipleChoiceStep } from '../content/types'
 import { DEFAULT_NUMERIC_TOLERANCE } from './constants'
 import { simMatchTolerance } from './physics'
 
@@ -9,13 +9,13 @@ export function validateMultipleChoice(
   return selectedId === step.correctOptionId
 }
 
-export function validateNumeric(
-  step: NumericInputStep,
+function numericAnswerCorrect(
+  correctValue: number,
   value: number,
+  tolerance = DEFAULT_NUMERIC_TOLERANCE,
 ): boolean {
-  const tolerance = step.tolerance ?? DEFAULT_NUMERIC_TOLERANCE
-  const diff = Math.abs(value - step.correctValue)
-  const allowed = Math.max(Math.abs(step.correctValue) * tolerance, 0.5)
+  const diff = Math.abs(value - correctValue)
+  const allowed = Math.max(Math.abs(correctValue) * tolerance, 0.5)
   return diff <= allowed
 }
 
@@ -27,11 +27,11 @@ export function validateCapstone(
     return answer.optionId === step.correctOptionId
   }
   if (step.subtype === 'numeric_input' && step.correctValue != null) {
-    const tolerance = step.tolerance ?? DEFAULT_NUMERIC_TOLERANCE
-    const value = answer.numericValue ?? NaN
-    const diff = Math.abs(value - step.correctValue)
-    const allowed = Math.max(Math.abs(step.correctValue) * tolerance, 0.5)
-    return diff <= allowed
+    return numericAnswerCorrect(
+      step.correctValue,
+      answer.numericValue ?? NaN,
+      step.tolerance,
+    )
   }
   if (step.subtype === 'sim_match' && step.simConfig) {
     const { targetAngle, targetVelocity } = step.simConfig
@@ -44,8 +44,4 @@ export function validateCapstone(
     )
   }
   return false
-}
-
-export function isCheckableStep(type: string): boolean {
-  return type === 'multiple_choice' || type === 'numeric_input' || type === 'capstone'
 }

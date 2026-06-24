@@ -69,13 +69,6 @@ export type FormulasStep = StepBase & {
   highlight?: string
 }
 
-export type NumericInputStep = StepBase & {
-  type: 'numeric_input'
-  correctValue: number
-  tolerance?: number
-  unit?: string
-}
-
 export type CapstoneStep = StepBase & {
   type: 'capstone'
   subtype: 'multiple_choice' | 'numeric_input' | 'sim_match'
@@ -92,7 +85,6 @@ export type Step =
   | IntroStep
   | SimExploreStep
   | MultipleChoiceStep
-  | NumericInputStep
   | RangeFormulaStep
   | FormulasStep
 

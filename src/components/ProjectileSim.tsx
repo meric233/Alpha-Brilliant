@@ -17,7 +17,6 @@ type Props = {
   showVelocity?: boolean
   simConfig?: SimConfig
   simKey?: string
-  onLaunchEnd?: () => void
 }
 
 type LaunchSnapshot = { angle: number; velocity: number }
@@ -83,7 +82,6 @@ export function ProjectileSim({
   showVelocity = true,
   simConfig,
   simKey,
-  onLaunchEnd,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
@@ -91,7 +89,6 @@ export function ProjectileSim({
   const velocityRef = useRef(velocity)
   const previousLaunchRef = useRef<LaunchSnapshot | null>(null)
   const [launching, setLaunching] = useState(false)
-  const [hasLaunched, setHasLaunched] = useState(false)
 
   angleRef.current = angle
   velocityRef.current = velocity
@@ -118,7 +115,6 @@ export function ProjectileSim({
 
   useEffect(() => {
     previousLaunchRef.current = null
-    setHasLaunched(false)
   }, [simKey])
 
   const viewBounds = useMemo(
@@ -345,7 +341,7 @@ export function ProjectileSim({
 
   useEffect(() => {
     if (!launching) drawScene(1)
-  }, [angle, velocity, gravity, launching, drawScene, hasLaunched])
+  }, [angle, velocity, gravity, launching, drawScene])
 
   const launch = () => {
     if (launching) return
@@ -365,9 +361,7 @@ export function ProjectileSim({
             velocity: velocityRef.current,
           }
         }
-        setHasLaunched(true)
         setLaunching(false)
-        onLaunchEnd?.()
       }
     }
     cancelAnimationFrame(animRef.current)

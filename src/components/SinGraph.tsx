@@ -4,22 +4,16 @@ import { GRAVITY } from '../lib/constants'
 
 type Props = {
   angle: number
-  onAngleChange: (v: number) => void
   angleRange?: [number, number]
   velocity?: number
   gravity?: number
-  showSlider?: boolean
-  showRangeLink?: boolean
 }
 
 export function SinGraph({
   angle,
-  onAngleChange,
   angleRange = [15, 75],
   velocity = 15,
   gravity = GRAVITY,
-  showSlider = true,
-  showRangeLink = false,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -47,7 +41,6 @@ export function SinGraph({
     const xAt = (deg: number) => pad.left + ((deg - minDeg) / (maxDeg - minDeg)) * plotW
     const yAt = (val: number) => pad.top + plotH - val * plotH
 
-    // grid
     ctx.strokeStyle = '#e5e7eb'
     ctx.lineWidth = 1
     for (let v = 0; v <= 1; v += 0.25) {
@@ -58,7 +51,6 @@ export function SinGraph({
       ctx.stroke()
     }
 
-    // axes
     ctx.strokeStyle = '#9ca3af'
     ctx.lineWidth = 1.5
     ctx.beginPath()
@@ -77,7 +69,6 @@ export function SinGraph({
     ctx.fillText('sin(2θ)', 0, 0)
     ctx.restore()
 
-    // sin(2θ) curve
     ctx.strokeStyle = '#6c3fc5'
     ctx.lineWidth = 2.5
     ctx.beginPath()
@@ -90,7 +81,6 @@ export function SinGraph({
     }
     ctx.stroke()
 
-    // 45° max marker
     const maxAngle = 45
     if (maxAngle >= minDeg && maxAngle <= maxDeg) {
       const mx = xAt(maxAngle)
@@ -112,24 +102,20 @@ export function SinGraph({
     const ax = xAt(angle)
     const ay = yAt(val)
 
-    // horizontal link from y-axis to sin(2θ) point (range ∝ sin(2θ))
-    if (showRangeLink) {
-      ctx.strokeStyle = 'rgba(108, 63, 197, 0.45)'
-      ctx.lineWidth = 2
-      ctx.setLineDash([4, 3])
-      ctx.beginPath()
-      ctx.moveTo(pad.left, ay)
-      ctx.lineTo(ax, ay)
-      ctx.stroke()
-      ctx.setLineDash([])
+    ctx.strokeStyle = 'rgba(108, 63, 197, 0.45)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([4, 3])
+    ctx.beginPath()
+    ctx.moveTo(pad.left, ay)
+    ctx.lineTo(ax, ay)
+    ctx.stroke()
+    ctx.setLineDash([])
 
-      ctx.fillStyle = '#6c3fc5'
-      ctx.font = '10px system-ui, sans-serif'
-      ctx.textAlign = 'left'
-      ctx.fillText(`sin(2θ) = ${val.toFixed(3)}`, pad.left + 4, ay - 6)
-    }
+    ctx.fillStyle = '#6c3fc5'
+    ctx.font = '10px system-ui, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText(`sin(2θ) = ${val.toFixed(3)}`, pad.left + 4, ay - 6)
 
-    // current angle marker
     ctx.fillStyle = '#e85d04'
     ctx.beginPath()
     ctx.arc(ax, ay, 7, 0, Math.PI * 2)
@@ -143,12 +129,8 @@ export function SinGraph({
     ctx.textAlign = 'left'
     ctx.fillText(`θ = ${angle}°`, pad.left, h - pad.bottom + 22)
     const r = range(angle, velocity, gravity)
-    ctx.fillText(
-      showRangeLink ? `R = ${r.toFixed(1)} m` : `sin(2θ) = ${val.toFixed(3)}`,
-      pad.left + 100,
-      h - pad.bottom + 22,
-    )
-  }, [angle, angleRange, velocity, gravity, showRangeLink])
+    ctx.fillText(`R = ${r.toFixed(1)} m`, pad.left + 100, h - pad.bottom + 22)
+  }, [angle, angleRange, velocity, gravity])
 
   useEffect(() => {
     draw()
@@ -156,11 +138,7 @@ export function SinGraph({
 
   return (
     <div className="sin-graph">
-      <p className="sin-graph-label">
-        {showRangeLink
-          ? 'sin(2θ) vs θ — height tracks range at fixed speed'
-          : 'Drag θ and watch sin(2θ) change:'}
-      </p>
+      <p className="sin-graph-label">sin(2θ) vs θ — height tracks range at fixed speed</p>
       <canvas
         ref={canvasRef}
         className="sin-graph-canvas"
@@ -168,18 +146,6 @@ export function SinGraph({
         height={220}
         aria-label="Graph of sin(2 theta) versus launch angle"
       />
-      {showSlider && (
-        <label className="sim-slider">
-          <span>Launch angle θ: {angle}°</span>
-          <input
-            type="range"
-            min={angleRange[0]}
-            max={angleRange[1]}
-            value={angle}
-            onChange={(e) => onAngleChange(Number(e.target.value))}
-          />
-        </label>
-      )}
     </div>
   )
 }

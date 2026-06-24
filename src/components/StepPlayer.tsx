@@ -3,7 +3,6 @@ import type {
   CapstoneStep,
   FormulasStep,
   MultipleChoiceStep,
-  NumericInputStep,
   RangeFormulaStep,
   SimExploreStep,
   Step,
@@ -15,7 +14,6 @@ import { HINT_THRESHOLD } from '../lib/constants'
 import {
   validateCapstone,
   validateMultipleChoice,
-  validateNumeric,
 } from '../lib/validation'
 import { simMatchTolerance } from '../lib/physics'
 import { playCorrect, playWrong, primeAudio } from '../lib/sounds'
@@ -279,47 +277,6 @@ export function StepPlayer({
             stepId={rf.id}
           />
         </div>
-      </div>
-    )
-  }
-
-  if (step.type === 'numeric_input') {
-    const num = step as NumericInputStep
-    return (
-      <div className="step step-numeric">
-        {burst}
-        <h2 className="step-prompt">{num.prompt}</h2>
-        <div className="numeric-input-row">
-          <input
-            type="number"
-            inputMode="decimal"
-            className="input"
-            value={numericValue}
-            onChange={(e) => setNumericValue(e.target.value)}
-            disabled={status === 'correct'}
-            placeholder="Your answer"
-            aria-label="Numeric answer"
-          />
-          {num.unit && <span className="unit">{num.unit}</span>}
-        </div>
-        <FeedbackPanel
-          feedback={num.feedback}
-          status={status}
-          wrongCount={wrongCount}
-          hintThreshold={HINT_THRESHOLD}
-          showExplanation={showExplanation}
-          onShowExplanation={() => setShowExplanation(true)}
-        />
-        {status === 'correct' ? (
-          <button type="button" className="btn btn-primary" onClick={handleContinue}>
-            Continue
-          </button>
-        ) : (
-          <CheckButton
-            canCheck={numericValue !== ''}
-            onCheck={() => checkAnswer(validateNumeric(num, parseFloat(numericValue)))}
-          />
-        )}
       </div>
     )
   }
