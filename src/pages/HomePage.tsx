@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Layout } from '../components/Layout'
 import { CoursePath } from '../components/CoursePath'
 import { course } from '../content/course'
 import type { LessonProgress } from '../content/types'
 import { findContinueTarget } from '../lib/courseUtils'
-import { getAllLessonProgress, resetLessonProgress } from '../services/progressService'
+import { getAllLessonProgress } from '../services/progressService'
 
 const BADGE_LABELS: Record<string, string> = {
   'lesson-1-complete': 'Shape Master',
@@ -17,10 +17,8 @@ const BADGE_LABELS: Record<string, string> = {
 
 export function HomePage() {
   const { user, profile, refreshProfile } = useAuth()
-  const navigate = useNavigate()
   const [progressList, setProgressList] = useState<LessonProgress[]>([])
   const [loading, setLoading] = useState(true)
-  const [retakingId, setRetakingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -29,19 +27,6 @@ export function HomePage() {
       setLoading(false)
     })
   }, [user])
-
-  const handleRetake = async (lessonId: string) => {
-    if (!user) return
-    setRetakingId(lessonId)
-    try {
-      await resetLessonProgress(user.uid, lessonId)
-      const list = await getAllLessonProgress(user.uid)
-      setProgressList(list)
-      navigate(`/lesson/${lessonId}`)
-    } finally {
-      setRetakingId(null)
-    }
-  }
 
   const continueTarget = profile
     ? findContinueTarget(profile, progressList)
@@ -99,11 +84,7 @@ export function HomePage() {
 
         <section>
           <h2>Your path</h2>
-          <CoursePath
-            progressList={progressList}
-            onRetake={handleRetake}
-            retakingId={retakingId}
-          />
+          <CoursePath progressList={progressList} />
         </section>
 
         <button type="button" className="btn btn-text btn-small" onClick={() => refreshProfile()}>

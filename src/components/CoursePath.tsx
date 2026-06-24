@@ -5,8 +5,6 @@ import { lessonStatus } from '../lib/courseUtils'
 
 type Props = {
   progressList: LessonProgress[]
-  onRetake?: (lessonId: string) => void
-  retakingId?: string | null
 }
 
 const statusLabel: Record<LessonStatus, string> = {
@@ -23,15 +21,13 @@ const statusIcon: Record<LessonStatus, string> = {
   completed: '✓',
 }
 
-export function CoursePath({ progressList, onRetake, retakingId }: Props) {
+export function CoursePath({ progressList }: Props) {
   return (
     <ol className="course-path">
       {course.lessons.map((lesson) => {
         const progress = progressList.find((p) => p.lessonId === lesson.id)
         const status = lessonStatus(lesson, progress, progressList)
         const locked = status === 'locked'
-        const canRetake = !locked && status !== 'not_started'
-        const isRetaking = retakingId === lesson.id
 
         return (
           <li key={lesson.id} className={`path-item path-${status}`}>
@@ -47,16 +43,6 @@ export function CoursePath({ progressList, onRetake, retakingId }: Props) {
                     <Link to={`/lesson/${lesson.id}`} className="path-cta">
                       {statusLabel[status]}
                     </Link>
-                  )}
-                  {canRetake && onRetake && (
-                    <button
-                      type="button"
-                      className="path-retake"
-                      disabled={isRetaking}
-                      onClick={() => onRetake(lesson.id)}
-                    >
-                      {isRetaking ? 'Resetting…' : 'Retake from start'}
-                    </button>
                   )}
                 </div>
               </div>

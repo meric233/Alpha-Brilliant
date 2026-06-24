@@ -14,6 +14,7 @@ import {
   recordWrongAttempt,
   resetLessonProgress,
   saveContinuePointer,
+  saveLessonPosition,
   saveSimState,
 } from '../services/progressService'
 import { getUserProfile } from '../services/userService'
@@ -96,6 +97,14 @@ export function LessonPage() {
     }, 400)
     return () => clearTimeout(t)
   }, [angle, velocity, user, lessonId])
+
+  // Continuously persist the learner's spot so Continue resumes mid-lesson,
+  // even if they quit on a step they haven't finished yet.
+  const resumable = Boolean(progress) && progress?.status !== 'completed'
+  useEffect(() => {
+    if (!user || !lessonId || loading || lessonComplete || !resumable) return
+    saveLessonPosition(user.uid, lessonId, phase, stepIndex)
+  }, [phase, stepIndex, user, lessonId, loading, lessonComplete, resumable])
 
   if (!lesson) {
     return (

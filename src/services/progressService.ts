@@ -118,6 +118,26 @@ export async function clearContinuePointer(uid: string): Promise<void> {
   })
 }
 
+/**
+ * Persist the learner's current position so "Continue" resumes exactly where
+ * they left off — even if they quit mid-step without completing it. Writes to
+ * both the lesson progress doc and the profile-level continue pointer.
+ */
+export async function saveLessonPosition(
+  uid: string,
+  lessonId: string,
+  phase: 'steps' | 'capstone',
+  stepIndex: number,
+): Promise<void> {
+  const ref = doc(db, 'users', uid, 'lessonProgress', lessonId)
+  await updateDoc(ref, {
+    phase,
+    currentStepIndex: stepIndex,
+    updatedAt: serverTimestamp(),
+  })
+  await saveContinuePointer(uid, lessonId, phase, stepIndex)
+}
+
 export async function recordWrongAttempt(
   uid: string,
   lessonId: string,

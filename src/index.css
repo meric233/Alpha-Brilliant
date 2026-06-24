@@ -364,28 +364,6 @@ a {
   gap: 0.75rem 1rem;
 }
 
-.path-retake {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  min-height: var(--touch);
-}
-
-.path-retake:hover:not(:disabled) {
-  color: var(--accent);
-}
-
-.path-retake:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .path-cta-disabled {
   color: var(--text);
 }
