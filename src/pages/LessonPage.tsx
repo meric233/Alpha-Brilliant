@@ -60,11 +60,15 @@ export function LessonPage() {
       const p = lp ?? (await initLessonProgress(user!.uid, lessonId!))
       setProgress(p)
 
-      const reviewFromStart = p.status === 'completed'
-      setPhase(reviewFromStart ? 'steps' : p.phase)
-      setStepIndex(reviewFromStart ? 0 : p.currentStepIndex)
+      // Resume exactly where the learner left off, clamped in case the
+      // lesson's content changed since the position was saved.
+      const resumePhase = p.phase
+      const resumeSteps = resumePhase === 'steps' ? lesson!.steps : lesson!.capstone
+      const resumeIndex = Math.min(Math.max(p.currentStepIndex, 0), resumeSteps.length - 1)
+      setPhase(resumePhase)
+      setStepIndex(resumeIndex)
 
-      if (p.simState && !reviewFromStart) {
+      if (p.simState) {
         setAngle(p.simState.angle)
         setVelocity(p.simState.velocity)
       } else {
@@ -81,9 +85,7 @@ export function LessonPage() {
         }
       }
 
-      const continuePhase = reviewFromStart ? 'steps' : p.phase
-      const continueIndex = reviewFromStart ? 0 : p.currentStepIndex
-      await saveContinuePointer(user!.uid, lessonId!, continuePhase, continueIndex)
+      await saveContinuePointer(user!.uid, lessonId!, resumePhase, resumeIndex)
       setLoading(false)
     }
 
@@ -98,13 +100,13 @@ export function LessonPage() {
     return () => clearTimeout(t)
   }, [angle, velocity, user, lessonId])
 
-  // Continuously persist the learner's spot so Continue resumes mid-lesson,
-  // even if they quit on a step they haven't finished yet.
-  const resumable = Boolean(progress) && progress?.status !== 'completed'
+  // Continuously persist the learner's spot so Continue resumes where they
+  // left off, even when reviewing an already-completed lesson.
+  const ready = Boolean(progress)
   useEffect(() => {
-    if (!user || !lessonId || loading || lessonComplete || !resumable) return
+    if (!user || !lessonId || loading || lessonComplete || !ready) return
     saveLessonPosition(user.uid, lessonId, phase, stepIndex)
-  }, [phase, stepIndex, user, lessonId, loading, lessonComplete, resumable])
+  }, [phase, stepIndex, user, lessonId, loading, lessonComplete, ready])
 
   if (!lesson) {
     return (

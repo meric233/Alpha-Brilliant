@@ -210,6 +210,10 @@ export async function completeStep(
   if (isLastCapstone) {
     patch.completedAt = serverTimestamp()
     lessonCompleted = true
+    // Rewind the saved position so a fresh re-open of a finished lesson starts
+    // at the beginning; mid-review quits still resume via saveLessonPosition.
+    patch.phase = 'steps'
+    patch.currentStepIndex = 0
     if (!alreadyDone && !alreadyFinishedCourse) xpEarned += xpForLessonComplete()
   }
 
