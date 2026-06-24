@@ -51,7 +51,13 @@ export const course: Course = {
         {
           id: 'shape-gravity',
           type: 'sim_explore',
-          prompt: 'Slide gravity to 0, launch, then try g = 10 m/s². How does the path change?',
+          prompt: 'What if gravity changed?',
+          body: 'Gravity is what pulls projectiles into a parabola instead of a straight line. Use the sim to feel the difference between “no gravity” and Earth-like gravity.',
+          tryItems: [
+            'Set g = 0 m/s², launch, and watch the path.',
+            'Set g = 10 m/s² (Earth) at the same angle and launch again.',
+            'Notice how positive g curves the path downward.',
+          ],
           simConfig: {
             defaultAngle: 45,
             defaultVelocity: 15,
@@ -200,6 +206,12 @@ export const course: Course = {
           id: 'comp-explore',
           type: 'sim_explore',
           prompt: 'Compare 30° and 60° at the same speed',
+          body: 'Complementary angles (add to 90°) can look very different but land at the same horizontal distance when speed is the same.',
+          tryItems: [
+            'Launch at 30° and note where the ball lands (orange flag).',
+            'Switch to 60° and launch again — same landing spot, different arc.',
+            'The orange dashed curve is your previous shot for easy comparison.',
+          ],
           simConfig: {
             defaultAngle: 30,
             defaultVelocity: 20,
@@ -387,6 +399,12 @@ export const course: Course = {
           id: 'calc-connect',
           type: 'sim_explore',
           prompt: 'Check your numbers in the sim',
+          body: 'You have formulas for range and height — now test them interactively. Range depends on angle through sin(2θ), and on speed through v².',
+          tryItems: [
+            'Try a few angles at fixed speed and watch where each shot lands.',
+            'Change speed and see how range grows — is it proportional to v²? (We dive deeper into that in the next lesson.)',
+            'Compare peak height when you change angle vs when you change speed.',
+          ],
           simConfig: {
             defaultAngle: 30,
             defaultVelocity: 10,

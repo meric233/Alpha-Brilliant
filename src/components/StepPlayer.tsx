@@ -5,6 +5,7 @@ import type {
   MultipleChoiceStep,
   NumericInputStep,
   RangeFormulaStep,
+  SimExploreStep,
   Step,
 } from '../content/types'
 import { RangeFormulaPanel } from './RangeFormulaPanel'
@@ -31,27 +32,17 @@ type Props = {
   onComplete: () => void
 }
 
-function AnswerActions({
-  status,
+function CheckButton({
   canCheck,
   onCheck,
-  onGiveUp,
 }: {
-  status: 'idle' | 'correct' | 'incorrect'
   canCheck: boolean
   onCheck: () => void
-  onGiveUp: () => void
 }) {
-  if (status === 'correct') return null
   return (
-    <div className="answer-actions">
-      <button type="button" className="btn btn-primary" disabled={!canCheck} onClick={onCheck}>
-        Check
-      </button>
-      <button type="button" className="btn btn-secondary" onClick={onGiveUp}>
-        Give up &amp; show answer
-      </button>
-    </div>
+    <button type="button" className="btn btn-primary" disabled={!canCheck} onClick={onCheck}>
+      Check
+    </button>
   )
 }
 
@@ -66,7 +57,6 @@ export function StepPlayer({
   onComplete,
 }: Props) {
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle')
-  const [revealed, setRevealed] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [numericValue, setNumericValue] = useState('')
@@ -74,7 +64,6 @@ export function StepPlayer({
 
   const resetCheck = () => {
     setStatus('idle')
-    setRevealed(false)
     setShowExplanation(false)
     setSelectedOption(null)
     setNumericValue('')
@@ -96,15 +85,6 @@ export function StepPlayer({
       setStatus('incorrect')
       playWrong()
     }
-  }
-
-  const revealAnswer = () => {
-    primeAudio()
-    setRevealed(true)
-    setShowExplanation(true)
-    setStatus('correct')
-    playCorrect()
-    setBurstKey((k) => k + 1)
   }
 
   useEffect(() => {
@@ -145,6 +125,8 @@ export function StepPlayer({
     )
   }
 
+  const burst = burstKey > 0 ? <CorrectBurst active key={burstKey} /> : null
+
   if (step.type === 'intro') {
     return (
       <div className="step step-intro">
@@ -159,10 +141,19 @@ export function StepPlayer({
   }
 
   if (step.type === 'sim_explore') {
+    const explore = step as SimExploreStep
     return (
       <div className="step step-explore">
-        <h2 className="step-prompt">{step.prompt}</h2>
-        {renderSim(step.simConfig, step.controls, step.id)}
+        <h2 className="step-prompt">{explore.prompt}</h2>
+        <p className="step-body">{explore.body}</p>
+        {explore.tryItems && explore.tryItems.length > 0 && (
+          <ul className="step-try-list">
+            {explore.tryItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        )}
+        {renderSim(explore.simConfig, explore.controls, explore.id)}
         <button type="button" className="btn btn-primary" onClick={handleContinue}>
           Continue
         </button>
@@ -175,7 +166,7 @@ export function StepPlayer({
     const withSim = Boolean(mc.simConfig)
     return (
       <div className={`step step-mc${withSim ? ' step-with-sim' : ''}`}>
-        {burstKey > 0 && <CorrectBurst active key={burstKey} />}
+        {burst}
         <div className="step-main">
           <h2 className="step-prompt">{mc.prompt}</h2>
           {withSim && (
@@ -186,7 +177,7 @@ export function StepPlayer({
               <button
                 key={opt.id}
                 type="button"
-                className={`option ${selectedOption === opt.id ? 'option-selected' : ''} ${revealed && opt.id === mc.correctOptionId ? 'option-correct' : ''}`}
+                className={`option ${selectedOption === opt.id ? 'option-selected' : ''} ${status === 'correct' && opt.id === mc.correctOptionId ? 'option-correct' : ''}`}
                 onClick={() => setSelectedOption(opt.id)}
                 disabled={status === 'correct'}
               >
@@ -201,23 +192,17 @@ export function StepPlayer({
             hintThreshold={HINT_THRESHOLD}
             showExplanation={showExplanation}
             onShowExplanation={() => setShowExplanation(true)}
-            revealed={revealed}
           />
           {status === 'correct' ? (
             <button type="button" className="btn btn-primary" onClick={handleContinue}>
               Continue
             </button>
           ) : (
-            <AnswerActions
-              status={status}
+            <CheckButton
               canCheck={!!selectedOption}
               onCheck={() => {
                 primeAudio()
                 checkAnswer(validateMultipleChoice(mc, selectedOption!))
-              }}
-              onGiveUp={() => {
-                setSelectedOption(mc.correctOptionId)
-                revealAnswer()
               }}
             />
           )}
@@ -302,13 +287,14 @@ export function StepPlayer({
     const num = step as NumericInputStep
     return (
       <div className="step step-numeric">
+        {burst}
         <h2 className="step-prompt">{num.prompt}</h2>
         <div className="numeric-input-row">
           <input
             type="number"
             inputMode="decimal"
             className="input"
-            value={revealed ? String(num.correctValue) : numericValue}
+            value={numericValue}
             onChange={(e) => setNumericValue(e.target.value)}
             disabled={status === 'correct'}
             placeholder="Your answer"
@@ -323,21 +309,15 @@ export function StepPlayer({
           hintThreshold={HINT_THRESHOLD}
           showExplanation={showExplanation}
           onShowExplanation={() => setShowExplanation(true)}
-          revealed={revealed}
         />
         {status === 'correct' ? (
           <button type="button" className="btn btn-primary" onClick={handleContinue}>
             Continue
           </button>
         ) : (
-          <AnswerActions
-            status={status}
+          <CheckButton
             canCheck={numericValue !== ''}
             onCheck={() => checkAnswer(validateNumeric(num, parseFloat(numericValue)))}
-            onGiveUp={() => {
-              setNumericValue(String(num.correctValue))
-              revealAnswer()
-            }}
           />
         )}
       </div>
@@ -355,6 +335,7 @@ export function StepPlayer({
 
       return (
         <div className="step step-capstone">
+          {burst}
           <span className="capstone-badge">Capstone</span>
           <h2 className="step-prompt">{cap.prompt}</h2>
           {cfg && renderSim(cfg, undefined, cap.id)}
@@ -365,15 +346,13 @@ export function StepPlayer({
             hintThreshold={HINT_THRESHOLD}
             showExplanation={showExplanation}
             onShowExplanation={() => setShowExplanation(true)}
-            revealed={revealed}
           />
           {status === 'correct' ? (
             <button type="button" className="btn btn-primary" onClick={handleContinue}>
               Continue
             </button>
           ) : (
-            <AnswerActions
-              status={status}
+            <CheckButton
               canCheck
               onCheck={async () => {
                 primeAudio()
@@ -387,11 +366,6 @@ export function StepPlayer({
                   playWrong()
                 }
               }}
-              onGiveUp={() => {
-                onAngleChange(targetAngle)
-                onVelocityChange(targetVelocity)
-                revealAnswer()
-              }}
             />
           )}
         </div>
@@ -402,7 +376,7 @@ export function StepPlayer({
       const withSim = Boolean(cap.simConfig)
       return (
         <div className={`step step-capstone${withSim ? ' step-with-sim' : ''}`}>
-          {burstKey > 0 && <CorrectBurst active key={burstKey} />}
+          {burst}
           <div className="step-main">
             <span className="capstone-badge">Capstone</span>
             <h2 className="step-prompt">{cap.prompt}</h2>
@@ -414,7 +388,7 @@ export function StepPlayer({
                 <button
                   key={opt.id}
                   type="button"
-                  className={`option ${selectedOption === opt.id ? 'option-selected' : ''} ${revealed && opt.id === cap.correctOptionId ? 'option-correct' : ''}`}
+                  className={`option ${selectedOption === opt.id ? 'option-selected' : ''} ${status === 'correct' && opt.id === cap.correctOptionId ? 'option-correct' : ''}`}
                   onClick={() => setSelectedOption(opt.id)}
                   disabled={status === 'correct'}
                 >
@@ -429,23 +403,17 @@ export function StepPlayer({
               hintThreshold={HINT_THRESHOLD}
               showExplanation={showExplanation}
               onShowExplanation={() => setShowExplanation(true)}
-              revealed={revealed}
             />
             {status === 'correct' ? (
               <button type="button" className="btn btn-primary" onClick={handleContinue}>
                 Continue
               </button>
             ) : (
-              <AnswerActions
-                status={status}
+              <CheckButton
                 canCheck={!!selectedOption}
                 onCheck={() =>
                   checkAnswer(validateCapstone(cap, { optionId: selectedOption! }))
                 }
-                onGiveUp={() => {
-                  setSelectedOption(cap.correctOptionId!)
-                  revealAnswer()
-                }}
               />
             )}
           </div>
@@ -461,6 +429,7 @@ export function StepPlayer({
     if (cap.subtype === 'numeric_input') {
       return (
         <div className="step step-capstone">
+          {burst}
           <span className="capstone-badge">Capstone</span>
           <h2 className="step-prompt">{cap.prompt}</h2>
           <div className="numeric-input-row">
@@ -468,7 +437,7 @@ export function StepPlayer({
               type="number"
               inputMode="decimal"
               className="input"
-              value={revealed ? String(cap.correctValue ?? '') : numericValue}
+              value={numericValue}
               onChange={(e) => setNumericValue(e.target.value)}
               disabled={status === 'correct'}
               placeholder="Your answer"
@@ -482,25 +451,19 @@ export function StepPlayer({
             hintThreshold={HINT_THRESHOLD}
             showExplanation={showExplanation}
             onShowExplanation={() => setShowExplanation(true)}
-            revealed={revealed}
           />
           {status === 'correct' ? (
             <button type="button" className="btn btn-primary" onClick={handleContinue}>
               Continue
             </button>
           ) : (
-            <AnswerActions
-              status={status}
+            <CheckButton
               canCheck={numericValue !== ''}
               onCheck={() =>
                 checkAnswer(
                   validateCapstone(cap, { numericValue: parseFloat(numericValue) }),
                 )
               }
-              onGiveUp={() => {
-                setNumericValue(String(cap.correctValue ?? ''))
-                revealAnswer()
-              }}
             />
           )}
         </div>

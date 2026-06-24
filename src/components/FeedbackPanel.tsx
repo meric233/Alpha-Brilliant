@@ -7,7 +7,6 @@ type Props = {
   hintThreshold: number
   showExplanation: boolean
   onShowExplanation: () => void
-  revealed?: boolean
 }
 
 export function FeedbackPanel({
@@ -17,21 +16,15 @@ export function FeedbackPanel({
   hintThreshold,
   showExplanation,
   onShowExplanation,
-  revealed = false,
 }: Props) {
   if (status === 'idle') return null
 
-  const showHint =
-    status === 'incorrect' && wrongCount >= hintThreshold && !revealed
+  const showHint = status === 'incorrect' && wrongCount >= hintThreshold
 
   return (
     <div className={`feedback feedback-${status}`} role="status">
       <p className="feedback-message">
-        {revealed
-          ? feedback.explanation
-          : status === 'correct'
-            ? feedback.correct
-            : feedback.incorrect}
+        {status === 'correct' ? feedback.correct : feedback.incorrect}
       </p>
       {showHint && !showExplanation && (
         <div className="feedback-hint">
@@ -41,7 +34,7 @@ export function FeedbackPanel({
           </button>
         </div>
       )}
-      {(showExplanation || revealed) && !revealed && (
+      {showExplanation && (
         <p className="feedback-explanation">{feedback.explanation}</p>
       )}
     </div>

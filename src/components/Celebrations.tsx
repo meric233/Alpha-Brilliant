@@ -6,21 +6,22 @@ export function CorrectBurst({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return
     setShow(true)
-    const t = setTimeout(() => setShow(false), 900)
+    const t = setTimeout(() => setShow(false), 1200)
     return () => clearTimeout(t)
   }, [active])
 
   if (!show) return null
 
   return (
-    <div className="correct-burst" aria-hidden>
-      {Array.from({ length: 12 }).map((_, i) => (
+    <div className="correct-burst-overlay" aria-hidden>
+      <div className="correct-burst-glow" />
+      {Array.from({ length: 16 }).map((_, i) => (
         <span
           key={i}
           className="burst-particle"
           style={{
             '--i': i,
-            '--rot': `${i * 30}deg`,
+            '--rot': `${i * 22.5}deg`,
           } as React.CSSProperties}
         />
       ))}

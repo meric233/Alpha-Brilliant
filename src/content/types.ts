@@ -40,6 +40,8 @@ export type IntroStep = StepBase & {
 
 export type SimExploreStep = StepBase & {
   type: 'sim_explore'
+  body: string
+  tryItems?: string[]
   simConfig: SimConfig
   controls: ('angle' | 'velocity' | 'gravity')[]
 }
