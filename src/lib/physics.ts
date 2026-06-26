@@ -1,7 +1,5 @@
 import { GRAVITY } from './constants'
 
-export type SimState = { angle: number; velocity: number }
-
 const ZERO_G_HORIZON = 6 // seconds of flight shown when g = 0
 
 export function degToRad(deg: number): number {
@@ -101,6 +99,34 @@ export function landingPosition(
   g: number = GRAVITY,
 ): { x: number; y: number } {
   return { x: range(angleDeg, velocity, g), y: 0 }
+}
+
+// Full set of quantities derivable from a single launch. Single source of
+// truth for grading F3 goal-free problems — the engine, not any model.
+export type DerivedQuantities = {
+  vx: number
+  vy: number
+  range: number
+  maxHeight: number
+  flightTime: number
+  timeToPeak: number
+}
+
+export function deriveQuantities(
+  angleDeg: number,
+  velocity: number,
+  g: number = GRAVITY,
+): DerivedQuantities {
+  const rad = degToRad(angleDeg)
+  const vy = velocity * Math.sin(rad)
+  return {
+    vx: velocity * Math.cos(rad),
+    vy,
+    range: range(angleDeg, velocity, g),
+    maxHeight: maxHeight(angleDeg, velocity, g),
+    flightTime: flightTime(angleDeg, velocity, g),
+    timeToPeak: g === 0 ? 0 : vy / g,
+  }
 }
 
 export function simMatchTolerance(

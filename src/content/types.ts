@@ -81,12 +81,72 @@ export type CapstoneStep = StepBase & {
   simControls?: ('angle' | 'velocity')[]
 }
 
+// --- F2: Worked Examples (lessons only, hand-authored, no AI) ---
+// A fully modeled, step-by-step solution. Display-only; the learner studies
+// the method, then advances. Reduces cognitive load on first contact with a
+// multi-step calculation (Sweller, 1988).
+export type WorkedExampleStep = StepBase & {
+  type: 'worked_example'
+  skillId?: string
+  problem: string
+  steps: { label: string; expression?: string; detail?: string }[]
+  answer: string
+  // Optional, formative-only self-explanation prompt. Never blocks advancing.
+  selfExplainPrompt?: string
+}
+
+// A standard "find X" numeric problem used as a teaching step. With `scaffold`
+// (pre-filled solution steps shown above the input) it is the "completion"
+// rung of the faded progression; without it, the "full" rung.
+export type NumericProblemStep = StepBase & {
+  type: 'numeric_problem'
+  skillId?: string
+  body?: string
+  givens?: string[]
+  scaffold?: string[]
+  correctValue: number
+  tolerance?: number
+  unit?: string
+  simConfig?: SimConfig
+  simControls?: ('angle' | 'velocity')[]
+}
+
+// --- F3: Goal-Free Problems (lessons only, hand-authored, no AI) ---
+// "From this launch, find as many quantities as you can." The engine computes
+// and grades the full derivable set; passing needs >= requiredCount correct.
+// Eliminates means-ends search → lower load while first learning (Sweller, 1988).
+export type GoalFreeQuantityKey =
+  | 'vx'
+  | 'vy'
+  | 'range'
+  | 'maxHeight'
+  | 'flightTime'
+  | 'timeToPeak'
+
+export type GoalFreeProblemStep = StepBase & {
+  type: 'goal_free_problem'
+  skillId?: string
+  body?: string
+  angle: number
+  velocity: number
+  gravity?: number
+  requiredCount?: number
+  // Quantities that are stated in the prompt (e.g. a given max height). They are
+  // not creditable toward `requiredCount` and are flagged as "given" if entered.
+  givenKeys?: GoalFreeQuantityKey[]
+  quantities: { key: GoalFreeQuantityKey; label: string; unit: string; tolerance?: number }[]
+  simConfig?: SimConfig
+}
+
 export type Step =
   | IntroStep
   | SimExploreStep
   | MultipleChoiceStep
   | RangeFormulaStep
   | FormulasStep
+  | WorkedExampleStep
+  | NumericProblemStep
+  | GoalFreeProblemStep
 
 export type Lesson = {
   id: string
@@ -117,6 +177,9 @@ export type UserProfile = {
   continueLessonId: string | null
   continuePhase: 'steps' | 'capstone' | null
   continueStepIndex: number | null
+  // Phase 2: learner-controlled toggle for live AI features (e.g. F3 open entry).
+  // Defaults to false so AI surfaces stay hidden until explicitly enabled.
+  aiEnabled: boolean
 }
 
 export type LessonProgress = {

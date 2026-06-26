@@ -5,18 +5,9 @@ type Props = {
   status: 'idle' | 'correct' | 'incorrect'
   wrongCount: number
   hintThreshold: number
-  showExplanation: boolean
-  onShowExplanation: () => void
 }
 
-export function FeedbackPanel({
-  feedback,
-  status,
-  wrongCount,
-  hintThreshold,
-  showExplanation,
-  onShowExplanation,
-}: Props) {
+export function FeedbackPanel({ feedback, status, wrongCount, hintThreshold }: Props) {
   if (status === 'idle') return null
 
   const showHint = status === 'incorrect' && wrongCount >= hintThreshold
@@ -26,16 +17,10 @@ export function FeedbackPanel({
       <p className="feedback-message">
         {status === 'correct' ? feedback.correct : feedback.incorrect}
       </p>
-      {showHint && !showExplanation && (
+      {showHint && feedback.hint && (
         <div className="feedback-hint">
           <p><strong>Hint:</strong> {feedback.hint}</p>
-          <button type="button" className="btn btn-text" onClick={onShowExplanation}>
-            Show explanation
-          </button>
         </div>
-      )}
-      {showExplanation && (
-        <p className="feedback-explanation">{feedback.explanation}</p>
       )}
     </div>
   )

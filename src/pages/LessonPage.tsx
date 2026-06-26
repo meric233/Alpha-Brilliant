@@ -6,6 +6,7 @@ import { StepPlayer } from '../components/StepPlayer'
 import { course, getLessonById } from '../content/course'
 import type { CapstoneStep, LessonProgress } from '../content/types'
 import { isLessonUnlocked } from '../lib/courseUtils'
+import { useIsAdmin } from '../lib/admin'
 import {
   completeStep,
   getAllLessonProgress,
@@ -24,6 +25,7 @@ import { LessonCompleteCelebration, StreakFireOverlay } from '../components/Cele
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>()
   const { user, profile, refreshProfile } = useAuth()
+  const isAdmin = useIsAdmin()
   const lesson = lessonId ? getLessonById(lessonId) : undefined
 
   const [progress, setProgress] = useState<LessonProgress | null>(null)
@@ -320,6 +322,8 @@ export function LessonPage() {
             angle={angle}
             velocity={velocity}
             wrongCount={wrongCount}
+            isAdmin={isAdmin}
+            aiEnabled={profile?.aiEnabled ?? false}
             onAngleChange={setAngle}
             onVelocityChange={setVelocity}
             onWrongAttempt={handleWrongAttempt}

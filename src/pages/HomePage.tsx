@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Layout } from '../components/Layout'
 import { CoursePath } from '../components/CoursePath'
+import { AdminPanel } from '../components/AdminPanel'
 import { course } from '../content/course'
 import type { LessonProgress } from '../content/types'
 import { findContinueTarget } from '../lib/courseUtils'
+import { useIsAdmin } from '../lib/admin'
 import { getAllLessonProgress } from '../services/progressService'
 
 const BADGE_LABELS: Record<string, string> = {
@@ -16,17 +18,32 @@ const BADGE_LABELS: Record<string, string> = {
 }
 
 export function HomePage() {
-  const { user, profile, refreshProfile } = useAuth()
+  const { user, profile, refreshProfile, setAiEnabled } = useAuth()
+  const isAdmin = useIsAdmin()
   const [progressList, setProgressList] = useState<LessonProgress[]>([])
   const [loading, setLoading] = useState(true)
+  const [togglingAi, setTogglingAi] = useState(false)
+
+  const aiEnabled = profile?.aiEnabled ?? false
+  const handleToggleAi = async () => {
+    setTogglingAi(true)
+    try {
+      await setAiEnabled(!aiEnabled)
+    } finally {
+      setTogglingAi(false)
+    }
+  }
+
+  const reloadProgress = useCallback(async () => {
+    if (!user) return
+    const list = await getAllLessonProgress(user.uid)
+    setProgressList(list)
+    setLoading(false)
+  }, [user])
 
   useEffect(() => {
-    if (!user) return
-    getAllLessonProgress(user.uid).then((list) => {
-      setProgressList(list)
-      setLoading(false)
-    })
-  }, [user])
+    reloadProgress()
+  }, [reloadProgress])
 
   const continueTarget = profile
     ? findContinueTarget(profile, progressList)
@@ -62,6 +79,28 @@ export function HomePage() {
           </div>
         )}
 
+        <section className="ai-toggle-card">
+          <div className="ai-toggle-text">
+            <h2>AI features</h2>
+            <p>
+              {aiEnabled
+                ? 'On — goal-free problems let you name and find any quantities you can derive.'
+                : 'Off — goal-free problems show a fixed checklist of quantities.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`ai-toggle-switch${aiEnabled ? ' ai-toggle-on' : ''}`}
+            role="switch"
+            aria-checked={aiEnabled}
+            disabled={togglingAi}
+            onClick={handleToggleAi}
+          >
+            <span className="ai-toggle-knob" />
+            <span className="ai-toggle-label">{aiEnabled ? 'On' : 'Off'}</span>
+          </button>
+        </section>
+
         <section className="badges-section">
           <h2>Badges</h2>
           <div className="badges-row">
@@ -87,9 +126,18 @@ export function HomePage() {
           <CoursePath progressList={progressList} />
         </section>
 
-        <button type="button" className="btn btn-text btn-small" onClick={() => refreshProfile()}>
+        <button
+          type="button"
+          className="btn btn-text btn-small"
+          onClick={() => {
+            refreshProfile()
+            reloadProgress()
+          }}
+        >
           Refresh progress
         </button>
+
+        {isAdmin && <AdminPanel progressList={progressList} onChanged={reloadProgress} />}
       </div>
     </Layout>
   )

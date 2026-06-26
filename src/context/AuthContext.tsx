@@ -19,7 +19,7 @@ import {
 } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { UserProfile } from '../content/types'
-import { ensureUserProfile, getUserProfile } from '../services/userService'
+import { ensureUserProfile, getUserProfile, updateUserProfile } from '../services/userService'
 
 type AuthState = {
   user: User | null
@@ -33,6 +33,7 @@ type AuthContextValue = AuthState & {
   signUpEmail: (email: string, password: string, displayName: string) => Promise<void>
   signInGoogle: () => Promise<void>
   setDisplayName: (name: string) => Promise<void>
+  setAiEnabled: (enabled: boolean) => Promise<void>
   refreshProfile: () => Promise<void>
   logout: () => Promise<void>
 }
@@ -102,6 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [refreshProfile],
   )
 
+  const setAiEnabled = useCallback(
+    async (enabled: boolean) => {
+      if (!auth.currentUser) return
+      // Optimistic update so the toggle feels instant; Firestore persists it.
+      setProfile((prev) => (prev ? { ...prev, aiEnabled: enabled } : prev))
+      await updateUserProfile(auth.currentUser.uid, { aiEnabled: enabled })
+      await refreshProfile()
+    },
+    [refreshProfile],
+  )
+
   const logout = useCallback(async () => {
     await signOut(auth)
   }, [])
@@ -120,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpEmail,
       signInGoogle,
       setDisplayName,
+      setAiEnabled,
       refreshProfile,
       logout,
     }),
@@ -132,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpEmail,
       signInGoogle,
       setDisplayName,
+      setAiEnabled,
       refreshProfile,
       logout,
     ],

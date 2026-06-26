@@ -24,6 +24,7 @@ function fromFirestore(data: Record<string, unknown>): UserProfile {
     continueLessonId: (data.continueLessonId as string | null) ?? null,
     continuePhase: (data.continuePhase as 'steps' | 'capstone' | null) ?? null,
     continueStepIndex: (data.continueStepIndex as number | null) ?? null,
+    aiEnabled: (data.aiEnabled as boolean) ?? false,
   }
 }
 
@@ -50,6 +51,7 @@ export async function createUserProfile(
     continueLessonId: null,
     continuePhase: null,
     continueStepIndex: null,
+    aiEnabled: false,
   }
   await setDoc(doc(db, 'users', uid), profile)
   return {
@@ -71,6 +73,7 @@ export async function updateUserProfile(
     continueLessonId: string | null
     continuePhase: 'steps' | 'capstone' | null
     continueStepIndex: number | null
+    aiEnabled: boolean
   }>,
 ): Promise<void> {
   await updateDoc(doc(db, 'users', uid), {

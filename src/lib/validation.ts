@@ -1,6 +1,11 @@
-import type { CapstoneStep, MultipleChoiceStep } from '../content/types'
+import type {
+  CapstoneStep,
+  GoalFreeProblemStep,
+  MultipleChoiceStep,
+  NumericProblemStep,
+} from '../content/types'
 import { DEFAULT_NUMERIC_TOLERANCE } from './constants'
-import { simMatchTolerance } from './physics'
+import { deriveQuantities, simMatchTolerance } from './physics'
 
 export function validateMultipleChoice(
   step: MultipleChoiceStep,
@@ -9,7 +14,7 @@ export function validateMultipleChoice(
   return selectedId === step.correctOptionId
 }
 
-function numericAnswerCorrect(
+export function numericAnswerCorrect(
   correctValue: number,
   value: number,
   tolerance = DEFAULT_NUMERIC_TOLERANCE,
@@ -44,4 +49,50 @@ export function validateCapstone(
     )
   }
   return false
+}
+
+// F2: "full" / "completion" numeric teaching problems.
+export function validateNumericProblem(
+  step: NumericProblemStep,
+  value: number,
+): boolean {
+  return numericAnswerCorrect(step.correctValue, value, step.tolerance)
+}
+
+// F3: grade goal-free entries against the engine. Only non-empty entries are
+// scored; the learner passes when at least `requiredCount` are correct.
+export type GoalFreeResult = {
+  correctKeys: string[]
+  attemptedKeys: string[]
+  correctCount: number
+  required: number
+  passed: boolean
+}
+
+export function validateGoalFree(
+  step: GoalFreeProblemStep,
+  entries: Record<string, number | undefined>,
+): GoalFreeResult {
+  const truth = deriveQuantities(step.angle, step.velocity, step.gravity)
+  const required = step.requiredCount ?? Math.min(3, step.quantities.length)
+
+  const correctKeys: string[] = []
+  const attemptedKeys: string[] = []
+
+  for (const q of step.quantities) {
+    const entry = entries[q.key]
+    if (entry == null || Number.isNaN(entry)) continue
+    attemptedKeys.push(q.key)
+    if (numericAnswerCorrect(truth[q.key], entry, q.tolerance)) {
+      correctKeys.push(q.key)
+    }
+  }
+
+  return {
+    correctKeys,
+    attemptedKeys,
+    correctCount: correctKeys.length,
+    required,
+    passed: correctKeys.length >= required,
+  }
 }

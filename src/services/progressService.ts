@@ -18,6 +18,7 @@ import {
 } from '../lib/gamification'
 import { getLessonById } from '../content/course'
 import { updateUserProfile } from './userService'
+import { today } from '../lib/clock'
 import type { UserProfile } from '../content/types'
 
 function fromFirestore(lessonId: string, data: Record<string, unknown>): LessonProgress {
@@ -181,8 +182,13 @@ export async function completeStep(
   let lessonCompleted = false
 
   const lessonBadge = lesson ? badgeForLesson(lesson.order) : null
+  // Used only to avoid re-awarding XP when reviewing an already-earned lesson.
   const alreadyFinishedCourse =
     Boolean(lessonBadge && profile?.badges.includes(lessonBadge))
+  // Source of truth for completion is the lesson's own prior status — NOT the
+  // badge. This keeps "completed" (and therefore unlocking the next lesson)
+  // tied to actually finishing the lesson, even if a stale badge lingers.
+  const wasCompleted = data.status === 'completed'
 
   if (!alreadyDone && !alreadyFinishedCourse) {
     xpEarned += xpForStepComplete()
@@ -198,11 +204,11 @@ export async function completeStep(
       : stepIndex + 1
 
   const patch: Record<string, unknown> = {
-    status: isLastCapstone || alreadyFinishedCourse ? 'completed' : 'in_progress',
+    status: isLastCapstone || wasCompleted ? 'completed' : 'in_progress',
     phase: nextPhase,
     currentStepIndex: nextStepIndex,
     completedStepIds,
-    capstoneCompleted: isLastCapstone || (alreadyFinishedCourse && data.capstoneCompleted),
+    capstoneCompleted: isLastCapstone || (wasCompleted && data.capstoneCompleted),
     updatedAt: serverTimestamp(),
     ...(simState ? { simState } : {}),
   }
@@ -220,7 +226,7 @@ export async function completeStep(
   await updateDoc(ref, patch)
 
   if (profile && !alreadyDone && !alreadyFinishedCourse) {
-    const streakUpdate = nextStreak(profile.streak, profile.lastActiveDate || null)
+    const streakUpdate = nextStreak(profile.streak, profile.lastActiveDate || null, today())
     const badges = [...profile.badges]
     if (lessonCompleted && lesson) {
       const badge = badgeForLesson(lesson.order)

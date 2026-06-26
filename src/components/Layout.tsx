@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useIsAdmin } from '../lib/admin'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { profile, logout } = useAuth()
+  const isAdmin = useIsAdmin()
 
   return (
     <div className="app-shell">
@@ -12,6 +14,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Link>
         {profile && (
           <div className="header-stats">
+            {isAdmin && (
+              <span className="stat-pill stat-admin" title="Admin mode">
+                ADMIN
+              </span>
+            )}
             <span
               className={`stat-pill stat-streak${profile.streak > 0 ? ' stat-streak-active' : ''}`}
               title="Streak"
