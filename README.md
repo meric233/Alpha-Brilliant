@@ -1,73 +1,17 @@
-# React + TypeScript + Vite
+# Paraboloα
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live app:** https://brilliant-8cf8b.web.app
 
-Currently, two official plugins are available:
+A Brilliant-style, learn-by-doing web app for **AP Physics C projectile motion**. Three interactive lessons teach projectile intuition through a cannon-and-arc simulation, instant feedback, and gamified progress (streaks, XP, badges).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Subject
 
-## React Compiler
+Projectile motion (ideal, g = 10 m/s², no air resistance): the shape of trajectories, how angle and speed affect height/range, complementary angles, and light range/height/time calculations.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Persona
 
-## Expanding the ESLint configuration
+A 10th–11th grader taking AP Physics C who knows calculus and has covered gravity, but has weak projectile intuition. Studies in short 5–10 min/day sessions on phone or laptop, and is easily distracted — so streaks and XP provide the habit hooks.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+React (Vite) + TypeScript + Firebase Auth + Firestore + Hosting.
