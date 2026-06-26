@@ -9,9 +9,9 @@ import { app } from '../firebase'
 // The function is deployed in us-central1 (see setGlobalOptions in the
 // function). Keep this region in sync if you change it.
 //
-// TODO(app-check): For production, enable App Check on the client AND flip
-// `enforceAppCheck: true` in the function to block calls from outside the app.
-// Deferred for local testing per product decision (2026-06).
+// App Check: the client initializes it in `src/lib/firebase.ts` (reCAPTCHA v3,
+// gated on VITE_RECAPTCHA_SITE_KEY). Enforcement on the function is activated by
+// flipping `enforceAppCheck: true` in functions/src/index.ts and redeploying.
 
 const REGION = 'us-central1'
 const DEFAULT_TIMEOUT_MS = 15000
@@ -58,9 +58,9 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 /**
  * Generate a JSON object that conforms to `jsonSchema` (an OpenAI-compatible,
  * strict JSON Schema) using structured output. Throws on timeout / network /
- * parse failure so callers can fall back to a deterministic path. NEVER used to
- * grade a value — only to produce/interpret language (see Prime Directive in
- * PRD-Phase2.md §3).
+ * parse failure so callers can tell the learner the grader is unavailable
+ * (there is no offline fallback). NEVER used to grade a value — only to
+ * produce/interpret language (see Prime Directive in PRD-Phase2.md §3).
  */
 export async function generateJson<T>(
   prompt: string,

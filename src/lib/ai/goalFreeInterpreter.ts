@@ -14,7 +14,6 @@ import { CANONICAL_KEYS, mappingJsonSchema, type MappingResponse } from './schem
 
 export type CatalogEntry = {
   key: GoalFreeQuantityKey
-  label: string
   unit: string
   description: string
   aliases: string[]
@@ -23,7 +22,6 @@ export type CatalogEntry = {
 export const QUANTITY_CATALOG: CatalogEntry[] = [
   {
     key: 'vx',
-    label: 'Horizontal velocity',
     unit: 'm/s',
     description:
       'Horizontal component of the INITIAL launch velocity, v·cosθ. (It happens to stay constant, but this key means the launch horizontal speed.)',
@@ -38,7 +36,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
   },
   {
     key: 'vy',
-    label: 'Vertical velocity',
     unit: 'm/s',
     description:
       'Vertical component of the INITIAL launch velocity, v·sinθ (its value at the moment of launch — NOT at the peak, where vertical speed is 0, and NOT at landing).',
@@ -54,7 +51,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
   },
   {
     key: 'range',
-    label: 'Range',
     unit: 'm',
     description: 'Horizontal distance traveled before landing on level ground.',
     aliases: [
@@ -69,7 +65,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
   },
   {
     key: 'maxHeight',
-    label: 'Maximum height',
     unit: 'm',
     description: 'Peak vertical height above the launch point.',
     aliases: [
@@ -83,7 +78,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
   },
   {
     key: 'flightTime',
-    label: 'Time of flight',
     unit: 's',
     description: 'Total time in the air until it lands.',
     aliases: [
@@ -97,7 +91,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
   },
   {
     key: 'timeToPeak',
-    label: 'Time to peak',
     unit: 's',
     description: 'Time to reach maximum height (half the flight time).',
     aliases: [
@@ -113,7 +106,6 @@ export const QUANTITY_CATALOG: CatalogEntry[] = [
 
 export type Mapping = {
   key: GoalFreeQuantityKey | 'unsupported'
-  confidence: number
 }
 
 function buildPrompt(labels: { name: string; unit?: string }[], scenario?: string): string {
@@ -151,7 +143,6 @@ Use "unsupported" when the label:
 Return for each label:
 - index: echo the label's index.
 - canonicalKey: one of the keys above or "unsupported".
-- confidence: 0 to 1.
 
 Learner labels:
 ${items}
@@ -181,15 +172,10 @@ export async function interpretQuantities(
     const key = (CANONICAL_KEYS as string[]).includes(m.canonicalKey)
       ? (m.canonicalKey as GoalFreeQuantityKey)
       : 'unsupported'
-    byIndex.set(m.index, {
-      key,
-      confidence: typeof m.confidence === 'number' ? m.confidence : 0,
-    })
+    byIndex.set(m.index, { key })
   }
 
-  return labels.map(
-    (_, i) => byIndex.get(i) ?? { key: 'unsupported', confidence: 0 },
-  )
+  return labels.map((_, i) => byIndex.get(i) ?? { key: 'unsupported' })
 }
 
 export type CoachReason = 'given' | 'unmatched'

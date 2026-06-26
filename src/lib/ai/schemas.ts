@@ -20,7 +20,6 @@ export type CanonicalOrUnsupported = GoalFreeQuantityKey | 'unsupported'
 export type QuantityMapping = {
   index: number
   canonicalKey: CanonicalOrUnsupported
-  confidence: number
 }
 
 export type MappingResponse = {
@@ -49,12 +48,8 @@ export const mappingJsonSchema: Record<string, unknown> = {
             enum: [...CANONICAL_KEYS, 'unsupported'],
             description: 'Best-matching canonical quantity, or "unsupported".',
           },
-          confidence: {
-            type: 'number',
-            description: 'Confidence in the mapping, 0 to 1.',
-          },
         },
-        required: ['index', 'canonicalKey', 'confidence'],
+        required: ['index', 'canonicalKey'],
       },
     },
   },

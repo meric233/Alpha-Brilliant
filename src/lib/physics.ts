@@ -28,10 +28,7 @@ export function flightTime(
 ): number {
   const rad = degToRad(angleDeg)
   const vy = velocity * Math.sin(rad)
-  if (g === 0) {
-    if (vy <= 0) return ZERO_G_HORIZON
-    return ZERO_G_HORIZON
-  }
+  if (g === 0) return ZERO_G_HORIZON
   if (vy <= 0) return 0.001
   return (2 * vy) / g
 }

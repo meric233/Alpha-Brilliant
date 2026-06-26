@@ -1337,12 +1337,6 @@ a {
   font-size: 0.9rem;
 }
 
-.feedback-explanation {
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
 /* Lesson complete */
 .lesson-complete {
   text-align: center;

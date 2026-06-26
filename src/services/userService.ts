@@ -8,8 +8,6 @@ import {
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { UserProfile } from '../content/types'
-import { localDateString } from '../lib/gamification'
-
 function fromFirestore(data: Record<string, unknown>): UserProfile {
   const ts = (v: unknown) => (v as Timestamp)?.toDate?.() ?? new Date()
   return {
@@ -91,5 +89,3 @@ export async function ensureUserProfile(
   if (existing) return existing
   return createUserProfile(uid, email, displayName)
 }
-
-export { localDateString }

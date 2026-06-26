@@ -35,8 +35,12 @@ const SYSTEM_PROMPT =
  * Returns { text } where `text` is the model output. For kind === 'json' the
  * text is a JSON string conforming to the supplied schema (the client parses).
  */
+// App Check is ENFORCED: only the real app (with a valid reCAPTCHA token) and
+// registered debug tokens can call this function. The client wires App Check in
+// src/lib/firebase.ts (gated on VITE_RECAPTCHA_SITE_KEY); localhost uses a
+// registered debug token.
 export const aiGenerate = onCall(
-  { secrets: [OPENAI_API_KEY], enforceAppCheck: false },
+  { secrets: [OPENAI_API_KEY], enforceAppCheck: true },
   async (request): Promise<{ text: string }> => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'You must be signed in to use AI features.')
