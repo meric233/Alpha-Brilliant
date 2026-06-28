@@ -7,6 +7,8 @@
 
 > **Prime directive (carried from the assignment):** Only start once the MVP teaches well on its own. Ground every AI feature in the lesson's **structured state**, not raw text. **Verify anything checkable against the physics engine** so the AI can never present a wrong number. The MVP must keep working with **AI turned off** — these are *additions, not replacements*.
 
+> **IMPLEMENTATION STATUS (what actually shipped) —** This PRD is preserved as the *original plan*. Of the three planned features, **only F2 (Worked Examples) and F3 (Goal-Free Problems) were built. F1 (Spaced Review) was not implemented.** So the shipped product delivers the cognitive-load scaffolds but **no retention/scheduling layer** — the "runs dry" / forgetting gaps from §1 remain open. Sections below carry inline **IMPLEMENTED / NOT IMPLEMENTED / IMPLEMENTED WITH DEVIATIONS** notes flagging where the code diverges from this plan. (The companion `Brainlift-Phase2.md` reflects this shipped reality: worked examples + goal-free only, spaced review deliberately deferred.)
+
 ---
 
 ## 1. Decision (the "decide" half)
@@ -32,6 +34,8 @@ We ship one retention feature (**F1 Spaced Review**) plus two cognitive-load fea
 
 
 > **Scope rule for F2 & F3:** they live **only in lessons** (never in reviews), and only in the **multi-step calculation lessons (L3, L4)** where a problem has multiple relevant variables or solution steps. Do **not** put them in single-concept/intuition lessons (L1 shape, L2 complementary angles), where a worked example or "find everything" framing adds nothing. **Reviews deliver only normal practice problems** (numeric / multiple-choice).
+
+> **STATUS — F1 NOT IMPLEMENTED; F2 & F3 IMPLEMENTED.** F2 and F3 shipped in L3/L4 exactly per this scope rule. F1 Spaced Review was not built, so in practice there are **no reviews at all** — the "review-only" clause is moot.
 
 ### 1.3 What we will deliberately leave out (Phase 2)
 
@@ -80,6 +84,8 @@ See `Brainlift.md` for the full decision narrative.
 ---
 
 ## 4. Feature F1 — Spaced Review
+
+> **NOT IMPLEMENTED.** F1 Spaced Review was not built. None of the planned pieces exist in the codebase: no `src/content/reviewSkills.ts`, no `src/lib/review/{scheduler,selectDue}.ts`, no `src/lib/ai/{problemGen,templates}.ts`, no `src/pages/ReviewPage.tsx`, no `users/{uid}/reviewSchedule` Firestore data, and no Home "Review — N due" card or memory-strength bars. The expanding-ladder scheduler, AI review-problem generation, and the whole retention loop described in §4.1–§4.7 below are **design only, unshipped**. (Rationale captured in `Brainlift-Phase2.md`: with only four lessons there is too little content for spacing to pay off, so it was deferred.)
 
 ### 4.1 User story
 
@@ -151,6 +157,8 @@ intervals = [1, 3, 7, 16, 35]   // days; expanding lag per "longer retention →
 
 ## 5. Feature F2 — Worked Examples
 
+> **IMPLEMENTED as specified.** The `worked_example` step type (`src/content/types.ts`) and its `StepPlayer` renderer ship, with hand-authored worked → completion → full progressions in **L3 `projectile-calculations`** and **L4 `velocity-range-height`** (`src/content/course.ts`). Fully static / no AI, so it behaves identically with the AI toggle on or off.
+
 ### 5.1 User story
 
 *As a novice meeting a new calculation skill, I want to first see a fully worked, step-by-step solution so I learn the method instead of flailing — then gradually do more of the steps myself.*
@@ -180,6 +188,8 @@ When such a skill is first taught, the lesson presents a **faded progression** (
 ---
 
 ## 6. Feature F3 — Goal-Free Problems
+
+> **IMPLEMENTED WITH DEVIATIONS.** Both modes ship: **AI on** = open entry (`src/components/GoalFreeOpenEntry.tsx` + `src/lib/ai/goalFreeInterpreter.ts`, learner names quantities, AI maps label → canonical key); **AI off** = fixed labeled list (the `goal_free_problem` branch in `StepPlayer`). The engine grades both via `validateGoalFree` (`src/lib/validation.ts`) against `deriveQuantities`. Deviations from the plan below: **(1) no deterministic alias-matcher fallback** — when AI is on and the call fails/times out, the app surfaces "grader unavailable" and the call throws, rather than silently matching with the alias table (the aliases exist only as *examples inside the AI prompt*, see §6.4). **(2) Added** an AI per-row **coaching** message (`explainRow`, prose only, never grades) for rows that earn no credit — not in the original spec.
 
 ### 6.1 User story
 
@@ -265,16 +275,22 @@ src/content/types.ts       // F2/F3: ADD optional step types worked_example, num
 src/components/StepPlayer  // F2/F3: ADD renderers for the new step types (additive branches — done). F3 renderer adds an "open entry" mode (AI on) alongside the fixed-list mode (AI off).
 ```
 
+> **STATUS — partial.** The F2/F3 pieces above exist: `worked_example` / `goal_free_problem` step types, their `StepPlayer` renderers (incl. the open-entry mode), `GoalFreeOpenEntry.tsx`, `goalFreeInterpreter.ts`, and the AI client/schemas (`src/lib/ai/{client,schemas}.ts`). The **F1 modules do not exist**: `reviewSkills.ts`, `src/lib/review/*`, `problemGen.ts`, `templates.ts`, `ReviewPage.tsx`. There is also **no `flags.ts`** — see §7.4 for how the AI toggle actually works.
+
 - Existing step types, `validation.ts`, and Phase 1 lesson behavior are unchanged; the new step types are ignored by lessons that don't use them.
 - **F3 grading is engine-only in both modes.** `goalFreeInterpreter` resolves *which* quantity a learner meant; `validateGoalFree` (already in `validation.ts`) does the numeric comparison against `deriveQuantities`.
 - Home gains a "Review — N due" card + memory-strength bars; existing Home behavior untouched.
 
 ### 7.4 Feature flags & fallback
 
+> **IMPLEMENTED DIFFERENTLY.** AI is gated by a **per-user runtime toggle** — `profile.aiEnabled` stored in Firestore and switched on the Home page (`src/pages/HomePage.tsx` → `AuthContext`/`userService`) — **not** a build-time `VITE_AI_ENABLED` env flag, and there is no `src/lib/ai/flags.ts`. Since F1 was never built, this toggle only affects **F3** (open-entry when on, fixed labeled list when off). F2 is hand-authored and unaffected, as planned. The optional `VITE_AI_GOALFREE` flag was not added.
+
 - `AI_ENABLED` (env `VITE_AI_ENABLED`, default off) gates **F1 review-problem generation** and **F3 open-entry quantity interpretation**. When off: F1 reviews use templated engine-built problems, and F3 falls back to its **fixed labeled-quantity list** (engine-graded). F2 is unaffected (it never used AI). All lessons work fully. This satisfies "MVP works with AI off."
 - Optional finer-grained flag (e.g. `VITE_AI_GOALFREE`) can gate F3 open-entry independently of F1 if we want to ship them on different timelines.
 
 ### 7.5 Data model (Firestore) — minimal additions
+
+> **STATUS — not added.** Neither the `reviewSchedule` subcollection (F1 only) nor the optional `aiEvents` telemetry was created. The one real change to the user model is the **`aiEnabled` boolean** on the user profile (§7.4).
 
 - `users/{uid}/reviewSchedule/{skillId}`: `{ skillId, lessonId, conceptTag, box(0..4), intervalDays, lastReviewedDate, nextDueDate, reps, lapses, lastResult }`. "Due today" computed client-side. Security rules mirror existing per-user access.
 - Optional `users/{uid}/aiEvents/{id}`: `{ type: 'problem_gen' | 'goal_free_map', skillId, verified, fellBack, ts }` for monitoring/Brainlift (`goal_free_map` records whether the AILabel→canonical mapping succeeded or fell back to the alias matcher). No new PII.
@@ -322,6 +338,8 @@ src/components/StepPlayer  // F2/F3: ADD renderers for the new step types (addit
 
 
 Build order ships the **deterministic fallback before the AI** for every surface, so the MVP-with-AI-off guarantee holds at every commit.
+
+> **STATUS — milestones actually completed:** #1 (decide), #3 (new step types F2/F3), #4 (authored F2/F3 content in L3/L4), and #8 (F3 open-entry AI interpretation) shipped. **#2, #5, #6, #7, and #9 (all the Spaced-Review scheduler/surface/generation work) were not done.** The AI client/schemas from #6 exist but serve F3, not F1.
 
 ---
 
